@@ -52,24 +52,18 @@ static_resources:
                   function envoy_on_request(request_handle)
                     local meta = request_handle:streamInfo():dynamicMetadata()
                     for key, value in pairs(meta) do
-                      -- request_handle:logInfo("extract dynamicMetadata key: "..key)
-                      if(key == "envoy.filters.http.jwt_authn")
-                      then
-                        if(value.jwt_payload ~= nil and value.jwt_payload.permissions ~= nil)
-                        then
-                          -- request_handle:logInfo("value.jwt_payload.permissions is not null")
+                      if(key == "envoy.filters.http.jwt_authn") then
+                        if(value.jwt_payload ~= nil and value.jwt_payload.permissions ~= nil) then
                           for k, v in pairs(value.jwt_payload.permissions) do
-                            -- request_handle:logInfo("permission: "..v)
-                            if(v == 'read:service')
-                            then
-                              -- request_handle:logInfo("return")
+                            if(v == 'read:service') then
                               return
                             end
                           end
                         end
-                        request_handle:respond({[":status"] = "403",},"JWT validation failed.") 
+                        break
                       end
                     end
+                    request_handle:respond({[":status"] = "403",},"JWT authorization failed.") 
                   end
           - name: envoy.filters.http.router
             typed_config:
