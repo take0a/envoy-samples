@@ -50,17 +50,12 @@ static_resources:
               default_source_code:
                 inline_string: |
                   function envoy_on_request(request_handle)
-                    local meta = request_handle:streamInfo():dynamicMetadata()
-                    for key, value in pairs(meta) do
-                      if(key == "envoy.filters.http.jwt_authn") then
-                        if(value.jwt_payload ~= nil and value.jwt_payload.permissions ~= nil) then
-                          for k, v in pairs(value.jwt_payload.permissions) do
-                            if(v == 'read:service') then
-                              return
-                            end
-                          end
+                    local jwt_authn = request_handle:streamInfo():dynamicMetadata():get("envoy.filters.http.jwt_authn")
+                    if (jwt_authn ~= nil and jwt_authn.jwt_payload ~= nil and jwt_authn.jwt_payload.permissions ~= nil) then
+                      for k, v in pairs(jwt_authn.jwt_payload.permissions) do
+                        if(v == 'read:service') then
+                          return
                         end
-                        break
                       end
                     end
                     request_handle:respond({[":status"] = "403",},"JWT authorization failed.") 
