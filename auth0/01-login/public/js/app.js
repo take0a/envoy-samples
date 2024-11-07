@@ -54,7 +54,10 @@ const configureClient = async () => {
 
   auth0Client = await auth0.createAuth0Client({
     domain: config.domain,
-    clientId: config.clientId
+    clientId: config.clientId,
+    authorizationParams: {
+      audience: config.audience
+    }
   });
 };
 
@@ -121,6 +124,10 @@ window.onload = async () => {
       }
 
       console.log("Logged in!");
+
+      const token = await auth0Client.getTokenSilently();
+      console.log("Access Token", token);
+
     } catch (err) {
       console.log("Error parsing redirect:", err);
     }
